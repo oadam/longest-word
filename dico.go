@@ -67,7 +67,7 @@ func New(file io.Reader) Dico {
 	var reader = csv.NewReader(file)
 	reader.FieldsPerRecord = 1
 
-	var root node
+	var root *node = &node{}
 	root.initChildren()
 	for {
 		words, e := reader.Read()
@@ -77,14 +77,18 @@ func New(file io.Reader) Dico {
 		var word = words[0]
 		var sortedWord = wordToSortedRunes(word)
 		var currentNode = root
-		for i := 0; i < len(sortedWord); i++ {
-			var r = sortedWord[i]
+		for _, r := range sortedWord {
 			if currentNode.children == nil {
 				currentNode.initChildren()
 			}
-			currentNode = currentNode.children[r]
+			var childNode, ok = currentNode.children[r]
+			if !ok {
+				currentNode.children[r] = node{}
+				childNode = currentNode.children[r]
+			}
+			currentNode = &childNode
 		}
 		currentNode.addWord(word)
 	}
-	return Dico(root)
+	return Dico(*root)
 }
