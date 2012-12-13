@@ -1,8 +1,8 @@
 package dico
 
 import (
-	"io"
 	"encoding/csv"
+	"io"
 	"sort"
 )
 
@@ -32,6 +32,37 @@ func (runes sortRunes) Swap(i, j int) {
 
 type Dico node
 
+func (d *Dico) Find(letters string) chan string {
+	var resultChan = make(chan string)
+	go func() {
+		var sorted = wordToSortedRunes(letters)
+		var root = node(*d)
+		var currents = []*node{&root}
+		for _, r := range sorted {
+			var nexts = []*node{}
+			for _, current := range currents {
+				var next, ok = current.children[r]
+				if ok {
+					nexts = append(nexts, &next)
+					for _, word := range next.words {
+						resultChan <- word
+					}
+				}
+			}
+			currents = append(currents, nexts...)
+		}
+		close(resultChan)
+	}()
+	return resultChan
+}
+
+func wordToSortedRunes(word string) []rune {
+	var sortedWord = make([]rune, len(word))
+	copy(sortedWord, []rune(word))
+	sort.Sort(sortRunes(sortedWord))
+	return sortedWord
+}
+
 func New(file io.Reader) Dico {
 	var reader = csv.NewReader(file)
 	reader.FieldsPerRecord = 1
@@ -44,9 +75,7 @@ func New(file io.Reader) Dico {
 			break
 		}
 		var word = words[0]
-		var sortedWord = make([]rune, len(word))
-		copy(sortedWord, []rune(word))
-		sort.Sort(sortRunes(sortedWord))
+		var sortedWord = wordToSortedRunes(word)
 		var currentNode = root
 		for i := 0; i < len(sortedWord); i++ {
 			var r = sortedWord[i]
@@ -59,4 +88,3 @@ func New(file io.Reader) Dico {
 	}
 	return Dico(root)
 }
-
