@@ -11,12 +11,6 @@ func TestRune(t *testing.T) {
 	fmt.Println(string(truc))
 }
 
-func TestAddWord(t *testing.T) {
-	var truc *node = &node{}
-	truc.addWord("toto")
-	fmt.Println(truc)
-}
-
 func TestNew(t *testing.T) {
 	file, err := os.Open("test_mots.txt")
 	defer file.Close()
@@ -32,16 +26,15 @@ func TestNew(t *testing.T) {
 		fmt.Printf("expected 1 word but found %v", words)
 	}
 }
-/*
 func TestFind(t *testing.T) {
-	file, err := os.Open("mots.txt")
+	file, err := os.Open("test_mots.txt")
 	defer file.Close()
 	if err != nil {
 		panic(err)
 	}
 	var d = New(file)
-	var results = d.Find("reivilo")
+	var results = d.Find("baaissables")
 	for result := range results {
 		fmt.Println(result)
 	}
-}*/
+}

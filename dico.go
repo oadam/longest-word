@@ -4,17 +4,16 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-	"log"
 	"sort"
 )
 
 type node struct {
 	words    []string
-	children map[rune]node
+	children map[rune]*node
 }
 
 func (n *node) initChildren() {
-	n.children = make(map[rune]node)
+	n.children = make(map[rune]*node)
 }
 func (n *node) addWord(w string) {
 	n.words = append(n.words, w)
@@ -43,14 +42,18 @@ func (d *Dico) Find(letters string) chan string {
 		var sorted = wordToSortedRunes(letters)
 		var root = node(*d)
 		var currents = []*node{&root}
+		var sent = map[*node]bool{}
 		for _, r := range sorted {
 			var nexts = []*node{}
 			for _, current := range currents {
-				var next, ok = current.children[r]
-				if ok {
-					nexts = append(nexts, &next)
-					for _, word := range next.words {
-						resultChan <- word
+				var next = current.children[r]
+				if next != nil {
+					nexts = append(nexts, next)
+					if !sent[next] {
+						sent[next] = true
+						for _, word := range next.words {
+							resultChan <- word
+						}
 					}
 				}
 			}
@@ -76,7 +79,6 @@ func New(file io.Reader) Dico {
 	root.initChildren()
 	for {
 		words, e := reader.Read()
-		log.Print("node is", *root)
 		if e != nil {
 			break
 		}
@@ -87,12 +89,12 @@ func New(file io.Reader) Dico {
 			if currentNode.children == nil {
 				currentNode.initChildren()
 			}
-			var childNode, ok = currentNode.children[r]
-			if !ok {
-				currentNode.children[r] = node{}
+			var childNode = currentNode.children[r]
+			if childNode == nil {
+				currentNode.children[r] = &node{}
 				childNode = currentNode.children[r]
 			}
-			currentNode = &childNode
+			currentNode = childNode
 		}
 		currentNode.addWord(word)
 	}
