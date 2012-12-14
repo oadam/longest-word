@@ -2,7 +2,9 @@ package dico
 
 import (
 	"encoding/csv"
+	"fmt"
 	"io"
+	"log"
 	"sort"
 )
 
@@ -16,6 +18,9 @@ func (n *node) initChildren() {
 }
 func (n *node) addWord(w string) {
 	n.words = append(n.words, w)
+}
+func (n *node) String() string {
+	return fmt.Sprintln(n.words)
 }
 
 type sortRunes []rune
@@ -71,6 +76,7 @@ func New(file io.Reader) Dico {
 	root.initChildren()
 	for {
 		words, e := reader.Read()
+		log.Print("node is", *root)
 		if e != nil {
 			break
 		}
