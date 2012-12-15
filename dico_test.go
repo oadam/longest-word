@@ -34,15 +34,29 @@ func TestSimpleFind(t *testing.T) {
 		t.Errorf("expected 3 results but received %v", results)
 	}
 }
-func TestFind(t *testing.T) {
-	file, err := os.Open("test_mots.txt")
+
+func BenchmarkNew(b *testing.B) {
+	b.StopTimer()
+	file, err := os.Open("mots.txt")
+	defer file.Close()
+	if err != nil {
+		panic(err)
+	}
+	b.StartTimer()
+	New(file)
+}
+
+func BenchmarkFind(b *testing.B) {
+	b.StopTimer()
+	file, err := os.Open("mots.txt")
 	defer file.Close()
 	if err != nil {
 		panic(err)
 	}
 	var d = New(file)
-	var results = d.Find("baaissables")
-	for result := range results {
-		fmt.Println(result)
+	const tirage = "reiviloqw"
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		d.Find(tirage)
 	}
 }
