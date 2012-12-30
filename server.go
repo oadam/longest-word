@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -14,19 +15,31 @@ const maxLetters = 12
 const dicoFilename = "mots.txt"
 const resourcesDirname = "resources"
 
-func main() {
+var dic dico.Dico
+var dicWait sync.WaitGroup
+
+func init() {
 	dicoFile, errDico := os.Open(dicoFilename)
 	if errDico != nil {
 		panic(fmt.Sprintf("did not manage to open dico file at specified path \"%s\" (error: %s)", dicoFilename, errDico))
 	}
-	defer dicoFile.Close()
-	if _, err := os.Open(resourcesDirname); err != nil {
+	resourcesDir, err := os.Open(resourcesDirname)
+	if err != nil {
 		panic(fmt.Sprintf("did not find resources dir at path \"%s\" (error: %s)", resourcesDirname, err))
 	}
+	resourcesDir.Close()
 
-	var d = dico.New(dicoFile)
+	//init dico
+	dicWait.Add(1)
+	go func() {
+		defer dicoFile.Close()
+		dic = dico.New(dicoFile)
+		dicWait.Add(-1)
+	}()
+}
 
-	http.Handle("/query", handler(d))
+func main() {
+	http.Handle("/query", http.HandlerFunc(query))
 	http.Handle("/", http.FileServer(http.Dir(resourcesDirname)))
 
 	var port = ":" + os.Getenv("PORT")
@@ -37,10 +50,7 @@ func main() {
 	}
 }
 
-type handler dico.Dico
-
-func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	var d dico.Dico = dico.Dico(h)
+func query(w http.ResponseWriter, req *http.Request) {
 	var receivedAt = time.Now()
 	req.ParseForm()
 	var query = req.Form.Get("q")
@@ -49,7 +59,8 @@ func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintln(w, "Too much (more than", maxLetters, ") letters")
 		query = query[0:maxLetters] + "..."
 	} else {
-		var result = (&d).Find(query)
+		dicWait.Wait()
+		var result = dic.Find(query)
 		json.NewEncoder(w).Encode(result)
 	}
 	log.Println("handled request \"", query, "\" in", time.Since(receivedAt))
