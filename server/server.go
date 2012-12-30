@@ -13,10 +13,10 @@ const maxLetters = 12
 
 func main() {
 	file, err := os.Open("mots.txt")
-	defer file.Close()
 	if err != nil {
 		panic(err)
 	}
+	defer file.Close()
 	var d = dico.New(file)
 
 	http.Handle("/query", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -34,7 +34,7 @@ func main() {
 	}))
 	http.Handle("/", http.FileServer(http.Dir("resources")))
 
-	const port = ":8123"
+	var port = ":" + os.Getenv("PORT")
 	log.Println("serving on http://localhost" + port)
 	err = http.ListenAndServe(port, nil)
 	if err != nil {
