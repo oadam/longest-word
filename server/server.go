@@ -1,7 +1,7 @@
 package main
 
 import (
-	"dico/dico"
+	"github.com/oadam/longest-word/dico"
 	"encoding/json"
 	"fmt"
 	"log"
