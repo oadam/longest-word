@@ -17,10 +17,10 @@
 				background-repeat: no-repeat;
 				background-position: right;
 			}
-			output {
+			#results {
 				display: inline-block;
 			}
-			output > ul {
+			#results > ul {
 				display: inline-block;
 				vertical-align: top;
 				margin: 0em 1em;
@@ -30,11 +30,20 @@
 	<body>
 		<h1>Le mot le plus long</h1>
 		<input type="text"><br/>
-		<output>
+		<div id="results"/>
+		<script src="textinput.js"></script>	
 		<script>
 			var currentCancellable = {cancelled: true};
 			var displayResults = function(results) {
-				$('output').empty();
+				if (results == null) {results = [];}
+				results.sort(function(a,b) {
+					if(a.length != b.length) {
+						return b.length - a.length;
+					} else {
+						return a < b ? 1 : -1;
+					}
+				});
+				$('#results').empty();
 				var currentLength = {
 					length: Number.MAX_VALUE,
 					span: null
@@ -44,29 +53,28 @@
 					if (result.length < currentLength.length) {
 						currentLength = {
 							length: result.length,
-							span: $('<ul/>').appendTo('output')
+							span: $('<ul/>').appendTo('#results')
 							};
 					}
 					currentLength.span.append('<li>'+result+'</li>');
 				}
 			};
-			$('input').keydown(function() {
-				/*var request = $.ajax({
+			$('input').bind('txtinput', function() {
+				var request = $.ajax({
 					url: 'query',
-					data: {letters: $(this).val()},
+					data: {q: $(this).val()},
 					dataType: 'json'
-				});*/
-				var request = $.Deferred(function(dfd){setTimeout(function(){dfd.resolve(["obelix", "asterix", "velo", "toi", "moi"]);}, 1000);});
+				});
+				//var request = $.Deferred(function(dfd){setTimeout(function(){dfd.resolve(["obelix", "asterix", "velo", "toi", "moi"]);}, 1000);});
 				var newCancellable = {cancelled: false};
 				currentCancellable.cancelled = true;
 				currentCancellable = newCancellable;
 				$('input').addClass('loading');
-				request.done(function(result) {
+				request.always(function(result) {
 					if (!newCancellable.cancelled) {
-						displayResults(result);
 						$('input').removeClass('loading');
 					}
-				});
+				}).done(displayResults).fail(console.error);
 			});
 		</script>
 	</body>

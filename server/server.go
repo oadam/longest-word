@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
-	"log"
-	"os"
 	"dico/dico"
+	"log"
 	"net/http"
+	"os"
+	"encoding/json"
 )
 
 func main() {
@@ -19,8 +19,9 @@ func main() {
 	http.Handle("/query", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		req.ParseForm()
 		var query = req.Form.Get("q")
-		fmt.Fprintf(w, "%v\n", d.Find(query))
+		json.NewEncoder(w).Encode(d.Find(query))
 	}))
+	http.Handle("/", http.FileServer(http.Dir("resources")))
 
 	const port = ":8123"
 	log.Println("serving on http://localhost" + port)
