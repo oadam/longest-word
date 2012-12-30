@@ -2,11 +2,13 @@ package main
 
 import (
 	"dico/dico"
+	"encoding/json"
 	"log"
 	"net/http"
+	"fmt"
 	"os"
-	"encoding/json"
 )
+const maxLetters = 12
 
 func main() {
 	file, err := os.Open("mots.txt")
@@ -19,7 +21,12 @@ func main() {
 	http.Handle("/query", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		req.ParseForm()
 		var query = req.Form.Get("q")
-		json.NewEncoder(w).Encode(d.Find(query))
+		if len(query) > maxLetters {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprintln(w, "Too much (more than", maxLetters,") letters")
+		} else {
+			json.NewEncoder(w).Encode(d.Find(query))
+		}
 	}))
 	http.Handle("/", http.FileServer(http.Dir("resources")))
 
