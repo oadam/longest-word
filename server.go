@@ -18,14 +18,16 @@ const resourcesDirname = "resources"
 var dic dico.Dico
 var dicWait sync.WaitGroup
 
-func init() {
+func main() {
+	var startedAt = time.Now()
+
 	dicoFile, errDico := os.Open(dicoFilename)
 	if errDico != nil {
 		panic(fmt.Sprintf("did not manage to open dico file at specified path \"%s\" (error: %s)", dicoFilename, errDico))
 	}
-	resourcesDir, err := os.Open(resourcesDirname)
-	if err != nil {
-		panic(fmt.Sprintf("did not find resources dir at path \"%s\" (error: %s)", resourcesDirname, err))
+	resourcesDir, errRes := os.Open(resourcesDirname)
+	if errRes != nil {
+		panic(fmt.Sprintf("did not find resources dir at path \"%s\" (error: %s)", resourcesDirname, errRes))
 	}
 	resourcesDir.Close()
 
@@ -35,15 +37,14 @@ func init() {
 		defer dicoFile.Close()
 		dic = dico.New(dicoFile)
 		dicWait.Add(-1)
+		log.Printf("dictionnary ready (%s ellapsed)\n", time.Since(startedAt))
 	}()
-}
-
-func main() {
+	
 	http.Handle("/query", http.HandlerFunc(query))
 	http.Handle("/", http.FileServer(http.Dir(resourcesDirname)))
 
 	var port = ":" + os.Getenv("PORT")
-	log.Println("serving on http://localhost" + port)
+	log.Printf("server started in %s, listening on %s\n", time.Since(startedAt), port)
 	var err = http.ListenAndServe(port, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe:", err)
