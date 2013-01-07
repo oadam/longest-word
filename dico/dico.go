@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"sort"
+	"github.com/fiam/gounidecode/unidecode"
 )
 
 type node struct {
@@ -50,6 +51,7 @@ func (result sortResults) Swap(i, j int) {
 type Dico node
 
 func (d *Dico) Find(letters string) []string {
+	letters = unidecode.Unidecode(letters)
 	var result []string
 	var sorted = wordToSortedRunes(letters)
 	var root = node(*d)
@@ -74,6 +76,7 @@ func (d *Dico) Find(letters string) []string {
 }
 
 func wordToSortedRunes(word string) []rune {
+	word = unidecode.Unidecode(word)
 	var sortedWord = make([]rune, len(word))
 	copy(sortedWord, []rune(word))
 	sort.Sort(sortRunes(sortedWord))
