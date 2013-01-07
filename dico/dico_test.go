@@ -34,7 +34,14 @@ func TestSimpleFind(t *testing.T) {
 		t.Errorf("expected 3 results but received %v", results)
 	}
 }
-
+func TestEFind(t *testing.T) {
+	file := strings.NewReader("é\ne\n")
+	var d = New(file)
+	var results = d.Find("e")
+	if len(results) != 2 {
+		t.Errorf("expected 2 results")
+	}
+}
 func BenchmarkNew(b *testing.B) {
 	b.StopTimer()
 	file, err := os.Open("mots.txt")
