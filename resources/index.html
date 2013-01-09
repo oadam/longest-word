@@ -35,10 +35,14 @@
 			#results {
 				display: inline-block;
 			}
+			#results > h2 {
+				font-family: 'Clicker Script', cursive;
+			}
 			#results > ul {
 				vertical-align: top;
 				list-style: none;
 				margin: 0.5em;
+				padding: 0;
 			}
 		</style>
 	</head>
@@ -52,7 +56,7 @@
 		<script>
 			var MAX_RESULTS = 20;
 			var currentCancellable = {cancelled: true};
-			var displayResults = function(results) {
+			var displayResults = function(results, query) {
 				if (results == null) {results = [];}
 				results.sort(function(a,b) {
 					if(a.length != b.length) {
@@ -69,7 +73,7 @@
 						if (sb.length > 0) {
 							sb.push('</ul>');
 						}
-						sb.push('<ul>');
+						sb.push('<h2>' + result.length + '/' + query.length + '</h2><ul>');
 						currentLength = result.length;
 					}
 					sb.push('<li>'+result+'</li>');
@@ -83,9 +87,10 @@
 				$('#results').html(sb.join(''));
 			};
 			$('input').bind('txtinput', function() {
+				var query = $(this).val();
 				var request = $.ajax({
 					url: 'query',
-					data: {q: $(this).val()},
+					data: {q: query},
 					dataType: 'json'
 				});
 				//var request = $.Deferred(function(dfd){setTimeout(function(){dfd.resolve(["obelix", "asterix", "velo", "toi", "moi"]);}, 1000);});
@@ -97,7 +102,9 @@
 					if (!newCancellable.cancelled) {
 						$('input').removeClass('loading');
 					}
-				}).done(displayResults).fail(function(e) {
+				}).done(function(results) {
+					displayResults(results, query);
+				}).fail(function(e) {
 					console.error(e);
 					$('input').addClass('error');
 				});
