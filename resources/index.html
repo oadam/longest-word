@@ -100,12 +100,13 @@
 				currentCancellable = newCancellable;
 				$('input').removeClass('error').addClass('loading');
 				request.always(function(result) {
-					if (!newCancellable.cancelled) {
-						$('input').removeClass('loading');
-					}
+					if (newCancellable.cancelled) {return;}
+					$('input').removeClass('loading');
 				}).done(function(results) {
+					if (newCancellable.cancelled) {return;}
 					displayResults(results, query);
 				}).fail(function(e) {
+					if (newCancellable.cancelled) {return;}
 					console.error(e);
 					$('input').addClass('error');
 				});
