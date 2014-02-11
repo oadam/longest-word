@@ -78,9 +78,9 @@ func (d *Dico) Find(letters string) []string {
 }
 
 func wordToSortedRunes(word string) []rune {
-	word = unidecode.Unidecode(word)
-	var sortedWord = make([]rune, len(word))
-	copy(sortedWord, []rune(word))
+	var decoded = unidecode.Unidecode(word)
+	var sortedWord = make([]rune, len(decoded))
+	copy(sortedWord, []rune(decoded))
 	sort.Sort(sortRunes(sortedWord))
 	return sortedWord
 }
