@@ -3,8 +3,8 @@ package dico
 import (
 	"encoding/csv"
 	"fmt"
-	"github.com/cznic/sortutil"
 	"github.com/fiam/gounidecode/unidecode"
+	"github.com/cznic/sortutil"
 	"io"
 	"sort"
 )
@@ -22,6 +22,21 @@ func (n *node) addWord(w string) {
 }
 func (n *node) String() string {
 	return fmt.Sprintln(n.words)
+}
+
+type sortResults []string
+
+func (result sortResults) Len() int {
+	return len(result)
+}
+func (result sortResults) Less(i, j int) bool {
+	if len(result[i]) > len(result[j]) {
+		return true
+	}
+	return result[i] < result[j]
+}
+func (result sortResults) Swap(i, j int) {
+	result[i], result[j] = result[j], result[i]
 }
 
 type Dico node
@@ -47,7 +62,7 @@ func (d *Dico) Find(letters string) []string {
 		}
 		currents = append(currents, nexts...)
 	}
-	sort.Strings(result)
+	sort.Sort(sortResults(result))
 	return result
 }
 
