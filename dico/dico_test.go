@@ -19,13 +19,10 @@ const exampleWords = "a\nab\naba\ntoto\n"
 func TestNew(t *testing.T) {
 	file := strings.NewReader(exampleWords)
 	var d = New(file)
-	var n = node(d)
-	if _, ok := n.children['a']; !ok {
-		t.Errorf("no node for a, map contains %v", len(n.children))
+	if d == nil {
+		t.Errorf("creating dico failed")
 	}
-	if words := n.children['a'].words; len(words) != 1 {
-		t.Errorf("expected 1 word but found %v", words)
-	}
+	t.Log("created dico %v", d)
 }
 func TestSimpleFind(t *testing.T) {
 	file := strings.NewReader(exampleWords)
