@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-const maxLetters = 12
+const maxLetters = 1000002
 const dicoFilename = "mots.txt"
 const resourcesDirname = "resources"
 
@@ -39,7 +39,7 @@ func main() {
 		dicWait.Add(-1)
 		log.Printf("dictionnary ready (%s ellapsed)\n", time.Since(startedAt))
 	}()
-	
+
 	http.Handle("/query", http.HandlerFunc(query))
 	http.Handle("/", http.FileServer(http.Dir(resourcesDirname)))
 

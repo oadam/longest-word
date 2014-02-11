@@ -2,104 +2,82 @@ package dico
 
 import (
 	"encoding/csv"
-	"fmt"
 	"github.com/fiam/gounidecode/unidecode"
-	"github.com/cznic/sortutil"
 	"io"
 	"sort"
 )
 
-type node struct {
-	words    []string
-	children map[rune]*node
-}
+type sortEntries []dicoEntry
 
-func (n *node) initChildren() {
-	n.children = make(map[rune]*node)
-}
-func (n *node) addWord(w string) {
-	n.words = append(n.words, w)
-}
-func (n *node) String() string {
-	return fmt.Sprintln(n.words)
-}
-
-type sortResults []string
-
-func (result sortResults) Len() int {
+func (result sortEntries) Len() int {
 	return len(result)
 }
-func (result sortResults) Less(i, j int) bool {
-	if len(result[i]) > len(result[j]) {
+func (result sortEntries) Less(i, j int) bool {
+	if len(result[i].word) > len(result[j].word) {
 		return true
 	}
-	return result[i] < result[j]
+	return result[i].word < result[j].word
 }
-func (result sortResults) Swap(i, j int) {
+func (result sortEntries) Swap(i, j int) {
 	result[i], result[j] = result[j], result[i]
 }
 
-type Dico node
+type dicoEntry struct {
+	word     string
+	multiset map[rune]int
+}
+type Dico []dicoEntry
+
+const maxResult = 100
 
 func (d *Dico) Find(letters string) []string {
-	letters = unidecode.Unidecode(letters)
+	var multiset = wordToMultiset(letters)
 	var result []string
-	var sorted = wordToSortedRunes(letters)
-	var root = node(*d)
-	var currents = []*node{&root}
-	var seen = map[*node]bool{}
-	for _, r := range sorted {
-		var nexts = []*node{}
-		for _, current := range currents {
-			var next = current.children[r]
-			if next != nil && !seen[next] {
-				nexts = append(nexts, next)
-				seen[next] = true
-				for _, word := range next.words {
-					result = append(result, word)
-				}
+	for _, entry := range []dicoEntry(*d) {
+		var eSet = entry.multiset
+		var ok = true
+		for r, nb := range eSet {
+			if multiset[r] < nb {
+				ok = false
+				break
 			}
 		}
-		currents = append(currents, nexts...)
+		if ok {
+			result = append(result, entry.word)
+			if len(result) > maxResult {
+				break
+			}
+		}
 	}
-	sort.Sort(sortResults(result))
 	return result
 }
 
-func wordToSortedRunes(word string) []rune {
+func wordToMultiset(word string) map[rune]int {
 	var decoded = unidecode.Unidecode(word)
-	var sortedWord = make([]rune, len(decoded))
-	copy(sortedWord, []rune(decoded))
-	sort.Sort(sortutil.RuneSlice(sortedWord))
-	return sortedWord
+	var result = make(map[rune]int)
+	for _, r := range decoded {
+		result[r]++
+	}
+	return result
 }
 
 func New(file io.Reader) Dico {
 	var reader = csv.NewReader(file)
 	reader.FieldsPerRecord = 1
 
-	var root *node = &node{}
-	root.initChildren()
+	var dico Dico
 	for {
 		words, e := reader.Read()
 		if e != nil {
 			break
 		}
 		var word = words[0]
-		var sortedWord = wordToSortedRunes(word)
-		var currentNode = root
-		for _, r := range sortedWord {
-			if currentNode.children == nil {
-				currentNode.initChildren()
-			}
-			var childNode = currentNode.children[r]
-			if childNode == nil {
-				currentNode.children[r] = &node{}
-				childNode = currentNode.children[r]
-			}
-			currentNode = childNode
-		}
-		currentNode.addWord(word)
+		var entry dicoEntry
+		entry.word = word
+		entry.multiset = wordToMultiset(word)
+		dico = append(dico, entry)
 	}
-	return Dico(*root)
+	sort.Sort(sortEntries(dico))
+
+	return dico
 }
