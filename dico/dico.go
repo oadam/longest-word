@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"github.com/fiam/gounidecode/unidecode"
+	"github.com/cznic/sortutil"
 	"io"
 	"sort"
 )
@@ -21,18 +22,6 @@ func (n *node) addWord(w string) {
 }
 func (n *node) String() string {
 	return fmt.Sprintln(n.words)
-}
-
-type sortRunes []rune
-
-func (runes sortRunes) Len() int {
-	return len(runes)
-}
-func (runes sortRunes) Less(i, j int) bool {
-	return runes[i] < runes[j]
-}
-func (runes sortRunes) Swap(i, j int) {
-	runes[i], runes[j] = runes[j], runes[i]
 }
 
 type sortResults []string
@@ -81,7 +70,7 @@ func wordToSortedRunes(word string) []rune {
 	var decoded = unidecode.Unidecode(word)
 	var sortedWord = make([]rune, len(decoded))
 	copy(sortedWord, []rune(decoded))
-	sort.Sort(sortRunes(sortedWord))
+	sort.Sort(sortutil.RuneSlice(sortedWord))
 	return sortedWord
 }
 
