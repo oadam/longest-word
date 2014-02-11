@@ -3,9 +3,9 @@ package dico
 import (
 	"encoding/csv"
 	"fmt"
+	"github.com/fiam/gounidecode/unidecode"
 	"io"
 	"sort"
-	"github.com/fiam/gounidecode/unidecode"
 )
 
 type node struct {
@@ -41,7 +41,9 @@ func (result sortResults) Len() int {
 	return len(result)
 }
 func (result sortResults) Less(i, j int) bool {
-	if len(result[i]) > len(result[j]) {return true}
+	if len(result[i]) > len(result[j]) {
+		return true
+	}
 	return result[i] < result[j]
 }
 func (result sortResults) Swap(i, j int) {

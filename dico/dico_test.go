@@ -2,8 +2,8 @@ package dico
 
 import (
 	"os"
-	"testing"
 	"strings"
+	"testing"
 )
 
 func TestRune(t *testing.T) {
@@ -13,6 +13,7 @@ func TestRune(t *testing.T) {
 		t.Errorf("expected %s but received %s", expected, truc)
 	}
 }
+
 const exampleWords = "a\nab\naba\ntoto\n"
 
 func TestNew(t *testing.T) {
@@ -50,7 +51,9 @@ func BenchmarkNew(b *testing.B) {
 		panic(err)
 	}
 	b.StartTimer()
-	New(file)
+	for i := 0; i < b.N; i++ {
+		New(file)
+	}
 }
 
 func BenchmarkFind(b *testing.B) {
