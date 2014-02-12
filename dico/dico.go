@@ -5,6 +5,7 @@ import (
 	"github.com/fiam/gounidecode/unidecode"
 	"io"
 	"sort"
+	"strings"
 )
 
 type byWordLength []dicoEntry
@@ -14,10 +15,10 @@ func (result byWordLength) Len() int {
 }
 func (result byWordLength) Less(i, j int) bool {
 	if result[i].length != result[j].length {
-	return	result[i].length > result[j].length
-	}else {
-	return result[i].word < result[j].word
-}
+		return result[i].length > result[j].length
+	} else {
+		return result[i].word < result[j].word
+	}
 }
 func (result byWordLength) Swap(i, j int) {
 	result[i], result[j] = result[j], result[i]
@@ -25,7 +26,7 @@ func (result byWordLength) Swap(i, j int) {
 
 type dicoEntry struct {
 	word     string
-	length int
+	length   int
 	multiset map[rune]int
 }
 type Dico []dicoEntry
@@ -56,6 +57,7 @@ func (d *Dico) Find(letters string) []string {
 
 func wordToMultiset(word string) (map[rune]int, int) {
 	var decoded = unidecode.Unidecode(word)
+	decoded = strings.ToLower(decoded)
 	var result = make(map[rune]int)
 	var l = 0
 	for _, r := range decoded {

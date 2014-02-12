@@ -14,7 +14,7 @@ import (
 	}
 }*/
 
-const exampleWords = "a\nab\naba\ntoto\n"
+const exampleWords = "a\nAb\naba\ntoto\n"
 
 func TestNew(t *testing.T) {
 	file := strings.NewReader(exampleWords)
