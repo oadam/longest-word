@@ -7,23 +7,25 @@ import (
 	"sort"
 )
 
-type sortEntries []dicoEntry
+type byWordLength []dicoEntry
 
-func (result sortEntries) Len() int {
+func (result byWordLength) Len() int {
 	return len(result)
 }
-func (result sortEntries) Less(i, j int) bool {
-	if len(result[i].word) > len(result[j].word) {
-		return true
-	}
+func (result byWordLength) Less(i, j int) bool {
+	if result[i].length != result[j].length {
+	return	result[i].length > result[j].length
+	}else {
 	return result[i].word < result[j].word
 }
-func (result sortEntries) Swap(i, j int) {
+}
+func (result byWordLength) Swap(i, j int) {
 	result[i], result[j] = result[j], result[i]
 }
 
 type dicoEntry struct {
 	word     string
+	length int
 	multiset map[rune]int
 }
 type Dico []dicoEntry
@@ -31,7 +33,7 @@ type Dico []dicoEntry
 const maxResult = 100
 
 func (d *Dico) Find(letters string) []string {
-	var multiset = wordToMultiset(letters)
+	var multiset, _ = wordToMultiset(letters)
 	var result []string
 	for _, entry := range []dicoEntry(*d) {
 		var eSet = entry.multiset
@@ -52,13 +54,15 @@ func (d *Dico) Find(letters string) []string {
 	return result
 }
 
-func wordToMultiset(word string) map[rune]int {
+func wordToMultiset(word string) (map[rune]int, int) {
 	var decoded = unidecode.Unidecode(word)
 	var result = make(map[rune]int)
+	var l = 0
 	for _, r := range decoded {
 		result[r]++
+		l++
 	}
-	return result
+	return result, l
 }
 
 func New(file io.Reader) Dico {
@@ -74,10 +78,9 @@ func New(file io.Reader) Dico {
 		var word = words[0]
 		var entry dicoEntry
 		entry.word = word
-		entry.multiset = wordToMultiset(word)
+		entry.multiset, entry.length = wordToMultiset(word)
 		dico = append(dico, entry)
 	}
-	sort.Sort(sortEntries(dico))
-
+	sort.Sort(byWordLength(dico))
 	return dico
 }
