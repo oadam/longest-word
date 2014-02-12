@@ -58,20 +58,20 @@
 			var MAX_RESULTS = 20;
 			var currentCancellable = {cancelled: true};
 			var displayResults = function(results, query) {
-				if (results == null) {results = [];}
-				results.sort(function(a,b) {
-					if(a.length != b.length) {
-						return b.length - a.length;
-					} else {
-						return a < b ? -1 : 1;
-					}
-				});
+				if (!results || results.length === 0) {
+					$('#results').html('<h2>Aucun résultat</h2>');
+					return;
+				}
 				var currentLength = Number.MAX_VALUE;
+
 				var sb = [];
+				var firstLength = true;
 				for(var i=0;i<results.length && i<MAX_RESULTS;i++) {
 					var result = results[i];
 					if (result.length < currentLength) {
-						if (sb.length > 0) {
+						if (firstLength) {
+							firstLength = false;
+						} else {
 							sb.push('</ul>');
 						}
 						sb.push('<h2>' + result.length + '/' + query.length + '</h2><ul>');
@@ -79,12 +79,7 @@
 					}
 					sb.push('<li>'+result+'</li>');
 				}
-				if (sb.length > 0) {
-					sb.push('</ul>');
-				}
-				if (results.length > MAX_RESULTS) {
-					sb.push('<p>Ainsi que ' + (results.length - MAX_RESULTS) + ' autres mots</p>');
-				}
+				sb.push('</ul>');
 				$('#results').html(sb.join(''));
 			};
 			$('input').bind('txtinput', function() {
